@@ -132,17 +132,17 @@ func main() {
 		DOWN[sub] = -1
 	}
 
-	m_ext_up := "External up running again"
-	m_ext_down := "External went down - %d"
-	m_ext_still_down := "External still down - %d"
+	m_ext_up := "[  UP  ] External"
+	m_ext_down := "[ DOWN ] External - %d"
+	m_ext_still_down := "[ DOWN ] External - %d"
 
-	m_int_up := "Internal up running again"
-	m_int_down := "Internal went down - %d"
-	m_int_still_down := "Internal still down - %d"
+	m_int_up := "[  UP  ] Internal"
+	m_int_down := "Internal - %d"
+	m_int_still_down := "Internal - %d"
 
-	m_target_up := "%s up running again"
-	m_target_down := "%s went down - %d"
-	m_target_still_down := "%s still down - %d"
+	m_target_up := "[  UP  ] %s"
+	m_target_down := "[ DOWN ] %s - %d"
+	m_target_still_down := "[ DOWN ] %s - %d"
 
 	for true {
 		// EXTERNAL PROXY
@@ -153,7 +153,7 @@ func main() {
 			// if external proxy is now up running
 			if ext_running {
 				DOWN["ext_pr"] = -1
-				helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_ext_up, ext_response_code))
+				helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), m_ext_up)
 				logger.Info(fmt.Sprintf(m_ext_up, ext_response_code))
 			} else {
 				// if external proxy is down for x minutes
