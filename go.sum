@@ -2,5 +2,7 @@ github.com/Pilladian/go-helper v1.0.11 h1:TW+hHG3lPnprkChERhIVT/i6mDBCs2Hnc/zSDa
 github.com/Pilladian/go-helper v1.0.11/go.mod h1:8g+JATN4tlGQionLgOfpf55x7yn/LEGIef4vmIxrJOI=
 github.com/Pilladian/go-helper v1.0.12 h1:Tln5G9IwI7CCY1HiyfCb7SQOnTmF9Yo59/cJyTJyRp8=
 github.com/Pilladian/go-helper v1.0.12/go.mod h1:8g+JATN4tlGQionLgOfpf55x7yn/LEGIef4vmIxrJOI=
+github.com/Pilladian/go-helper v1.0.13 h1:iUCUSe+DCj9DEeWnfX8QEEDckhiqjIcf3QWI3n7kzWg=
+github.com/Pilladian/go-helper v1.0.13/go.mod h1:8g+JATN4tlGQionLgOfpf55x7yn/LEGIef4vmIxrJOI=
 github.com/Pilladian/logger v1.1.5 h1:R1+J/TptlSZ4XdrqUydE/7yC6EPvueejpla8iUpTqJA=
 github.com/Pilladian/logger v1.1.5/go.mod h1:GL3fJ+25T2b7soW2eigo9fglr/UWdLZmAAfHbla4tgE=
