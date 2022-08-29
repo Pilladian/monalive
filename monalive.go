@@ -1,11 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,6 +20,32 @@ import (
 var TARGETS []string
 var CLIENT *http.Client
 var DOWN = make(map[string]int)
+var INFOWATCH_PID = os.Getenv("INFOWATCH_PID")
+
+// Send Logs to InfoWatch
+func sendLogsToInfoWatch(pid string, domain string, response_code string) (int, error) {
+	request_body, request_body_err := json.Marshal(map[string]string{
+		"domain":        domain,
+		"response_code": response_code,
+		"time":          time.Now().Format(time.RFC3339),
+	})
+
+	if request_body_err != nil {
+		return 1, request_body_err
+	}
+
+	url := os.Getenv("INFOWATCH_URL")
+	rev_proxy_username := os.Getenv("INFOWATCH_REV_PROXY_USERNAME")
+	rev_proxy_password := os.Getenv("INFOWATCH_REV_PROXY_PASSWORD")
+
+	req, _ := http.NewRequest("POST", fmt.Sprintf(url, pid), bytes.NewBuffer(request_body))
+	req.SetBasicAuth(rev_proxy_username, rev_proxy_password)
+	re, re_err := CLIENT.Do(req)
+	if re_err != nil {
+		return 1, re_err
+	}
+	return re.StatusCode, nil
+}
 
 // Return list of targets, that will be monitored
 func getTargets() {
@@ -75,6 +104,7 @@ func internalProxyCheck() (bool, int, error) {
 	}
 }
 
+// Check URL
 func urlCheck(url string) (bool, int, error) {
 	req, _ := http.NewRequest("GET", url, nil)
 	re, re_err := CLIENT.Do(req)
@@ -131,6 +161,7 @@ func main() {
 					helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_ext_still_down, ext_response_code))
 					DOWN["ext_pr"] = -1
 					logger.Warning(fmt.Sprintf(m_ext_still_down, ext_response_code))
+					sendLogsToInfoWatch(INFOWATCH_PID, "external.proxy", strconv.Itoa(ext_response_code))
 				}
 				DOWN["ext_pr"]++
 			}
@@ -140,6 +171,7 @@ func main() {
 				helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_ext_down, ext_response_code))
 				DOWN["ext_pr"] = 0
 				logger.Warning(fmt.Sprintf(m_ext_down, ext_response_code))
+				sendLogsToInfoWatch(INFOWATCH_PID, "external.proxy", strconv.Itoa(ext_response_code))
 			}
 		}
 
@@ -159,6 +191,7 @@ func main() {
 					helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_int_still_down, int_response_code))
 					DOWN["int_pr"] = -1
 					logger.Warning(fmt.Sprintf(m_int_still_down, int_response_code))
+					sendLogsToInfoWatch(INFOWATCH_PID, "internal.proxy", strconv.Itoa(int_response_code))
 				}
 				DOWN["int_pr"]++
 			}
@@ -168,6 +201,7 @@ func main() {
 				helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_int_down, int_response_code))
 				DOWN["int_pr"] = 0
 				logger.Warning(fmt.Sprintf(m_int_down, int_response_code))
+				sendLogsToInfoWatch(INFOWATCH_PID, "internal.proxy", strconv.Itoa(int_response_code))
 			}
 		}
 
@@ -190,6 +224,7 @@ func main() {
 						helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_target_still_down, sub, target_response_code))
 						DOWN[sub] = -1
 						logger.Warning(fmt.Sprintf(m_target_still_down, sub, target_response_code))
+						sendLogsToInfoWatch(INFOWATCH_PID, domain, strconv.Itoa(target_response_code))
 					}
 					DOWN[sub]++
 				}
@@ -199,6 +234,7 @@ func main() {
 					helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_target_down, sub, target_response_code))
 					DOWN[sub] = 0
 					logger.Warning(fmt.Sprintf(m_target_down, sub, target_response_code))
+					sendLogsToInfoWatch(INFOWATCH_PID, domain, strconv.Itoa(target_response_code))
 				}
 			}
 		}
