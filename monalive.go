@@ -132,15 +132,15 @@ func main() {
 		DOWN[sub] = -1
 	}
 
-	m_ext_up := "\\[ \\+ ] External"
+	m_ext_up := "\\[ + ] External"
 	m_ext_down := "\\[ - ] External - %d"
 	m_ext_still_down := "\\[ - ] External - %d"
 
-	m_int_up := "\\[ \\+ ] Internal"
+	m_int_up := "\\[ + ] Internal"
 	m_int_down := "\\[ - ] Internal - %d"
 	m_int_still_down := "\\[ - ] Internal - %d"
 
-	m_target_up := "\\[ \\+ ] %s"
+	m_target_up := "\\[ + ] %s"
 	m_target_down := "\\[ - ] %s - %d"
 	m_target_still_down := "\\[ - ] %s - %d"
 
