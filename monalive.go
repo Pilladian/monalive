@@ -132,17 +132,17 @@ func main() {
 		DOWN[sub] = -1
 	}
 
-	m_ext_up := "\\[ U ] External"
-	m_ext_down := "\\[ - ] External - %d"
-	m_ext_still_down := "\\[ - ] External - %d"
+	m_ext_up := "\\[ u ] External"
+	m_ext_down := "\\[ d ] External - %d"
+	m_ext_still_down := "\\[ d ] External - %d"
 
-	m_int_up := "\\[ U ] Internal"
-	m_int_down := "\\[ - ] Internal - %d"
-	m_int_still_down := "\\[ - ] Internal - %d"
+	m_int_up := "\\[ u ] Internal"
+	m_int_down := "\\[ d ] Internal - %d"
+	m_int_still_down := "\\[ d ] Internal - %d"
 
-	m_target_up := "\\[ U ] %s"
-	m_target_down := "\\[ - ] %s - %d"
-	m_target_still_down := "\\[ - ] %s - %d"
+	m_target_up := "\\[ u ] %s"
+	m_target_down := "\\[ d ] %s - %d"
+	m_target_still_down := "\\[ d ] %s - %d"
 
 	for true {
 		// EXTERNAL PROXY
