@@ -61,17 +61,20 @@ func getTargets() {
 }
 
 // Check external proxy
+//
+//	51 : Request Error
+//	52 : Read Body Error
 func externalProxyCheck() (bool, int, error) {
 	url := os.Getenv("EXTERNAL_PROXY_URL")
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Host = os.Getenv("EXTERNAL_PROXY_HOST")
 	re, re_err := CLIENT.Do(req)
 	if re_err != nil {
-		return false, 1, re_err
+		return false, 51, re_err
 	}
 	body, body_err := io.ReadAll(re.Body)
 	if body_err != nil {
-		return false, 1, body_err
+		return false, 52, body_err
 	}
 	defer re.Body.Close()
 
@@ -83,17 +86,20 @@ func externalProxyCheck() (bool, int, error) {
 }
 
 // Check internal proxy
+//
+//	61 : Request Error
+//	62 : Read Body Error
 func internalProxyCheck() (bool, int, error) {
 	url := os.Getenv("INTERNAL_PROXY_URL")
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Host = os.Getenv("INTERNAL_PROXY_HOST")
 	re, re_err := CLIENT.Do(req)
 	if re_err != nil {
-		return false, 1, re_err
+		return false, 61, re_err
 	}
 	body, body_err := io.ReadAll(re.Body)
 	if body_err != nil {
-		return false, 1, body_err
+		return false, 62, body_err
 	}
 	defer re.Body.Close()
 
@@ -105,11 +111,13 @@ func internalProxyCheck() (bool, int, error) {
 }
 
 // Check URL
+//
+//	71 : Request Error
 func urlCheck(url string) (bool, int, error) {
 	req, _ := http.NewRequest("GET", url, nil)
 	re, re_err := CLIENT.Do(req)
 	if re_err != nil {
-		return false, 1, re_err
+		return false, 71, re_err
 	}
 
 	if re.StatusCode == 200 {
