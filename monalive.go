@@ -155,9 +155,10 @@ func main() {
 				DOWN["ext_pr"] = -1
 				helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), m_ext_up)
 				logger.Info(fmt.Sprintf(m_ext_up, ext_response_code))
+				sendLogsToInfoWatch(INFOWATCH_PID, "external.proxy", strconv.Itoa(ext_response_code))
 			} else {
 				// if external proxy is down for x minutes
-				if DOWN["ext_pr"] == 30 {
+				if DOWN["ext_pr"] == 360 {
 					helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_ext_still_down, ext_response_code))
 					DOWN["ext_pr"] = -1
 					logger.Warning(fmt.Sprintf(m_ext_still_down, ext_response_code))
@@ -185,9 +186,10 @@ func main() {
 				DOWN["int_pr"] = -1
 				helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), m_int_up)
 				logger.Info(m_int_up)
+				sendLogsToInfoWatch(INFOWATCH_PID, "internal.proxy", strconv.Itoa(int_response_code))
 			} else {
 				// if internal proxy is down for x minutes
-				if DOWN["int_pr"] == 30 {
+				if DOWN["int_pr"] == 360 {
 					helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_int_still_down, int_response_code))
 					DOWN["int_pr"] = -1
 					logger.Warning(fmt.Sprintf(m_int_still_down, int_response_code))
@@ -218,9 +220,10 @@ func main() {
 					DOWN[sub] = -1
 					helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_target_up, sub))
 					logger.Info(fmt.Sprintf(m_target_up, sub))
+					sendLogsToInfoWatch(INFOWATCH_PID, domain, strconv.Itoa(target_response_code))
 				} else {
 					// if target is down for x minutes
-					if DOWN[sub] == 30 {
+					if DOWN[sub] == 360 {
 						helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_target_still_down, sub, target_response_code))
 						DOWN[sub] = -1
 						logger.Warning(fmt.Sprintf(m_target_still_down, sub, target_response_code))
@@ -238,6 +241,6 @@ func main() {
 				}
 			}
 		}
-		time.Sleep(30 * time.Second)
+		time.Sleep(5 * time.Second)
 	}
 }
