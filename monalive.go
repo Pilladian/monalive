@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -21,6 +20,7 @@ var TARGETS []string
 var CLIENT *http.Client
 var DOWN = make(map[string]int)
 var INFOWATCH_PID = os.Getenv("INFOWATCH_PID")
+var ELASTIC_SEARCH_PID = os.Getenv("ELASTIC_SEARCH_PID")
 
 // Send Logs to InfoWatch
 func sendLogsToInfoWatch(pid string, domain string, response_code string) (int, error) {
@@ -44,6 +44,34 @@ func sendLogsToInfoWatch(pid string, domain string, response_code string) (int, 
 	if re_err != nil {
 		return 1, re_err
 	}
+	return re.StatusCode, nil
+}
+
+func sendLogsToElastic(pid string, domain string, response_code int) (int, error) {
+	request_body, request_body_err := json.Marshal(map[string]interface{}{
+		"domain":        domain,
+		"response_code": response_code,
+		"time":          time.Now().Format(time.RFC3339),
+	})
+
+	if request_body_err != nil {
+		logger.Error(request_body_err.Error())
+		return 1, request_body_err
+	}
+
+	url := os.Getenv("ELASTIC_SEARCH_URL")
+	rev_proxy_username := os.Getenv("ELASTIC_SEARCH_USERNAME")
+	rev_proxy_password := os.Getenv("ELASTIC_SEARCH_PASSWORD")
+
+	req, _ := http.NewRequest("POST", fmt.Sprintf(url+"/%s/_doc", pid), bytes.NewBuffer(request_body))
+	req.SetBasicAuth(rev_proxy_username, rev_proxy_password)
+	req.Header.Set("Content-Type", "application/json")
+	re, re_err := CLIENT.Do(req)
+	if re_err != nil {
+		return 1, re_err
+	}
+	body, _ := io.ReadAll(re.Body)
+	logger.Info("Elastic Response: " + string(body))
 	return re.StatusCode, nil
 }
 
@@ -163,14 +191,14 @@ func main() {
 				DOWN["ext_pr"] = -1
 				helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), m_ext_up)
 				logger.Info(fmt.Sprintf(m_ext_up, ext_response_code))
-				sendLogsToInfoWatch(INFOWATCH_PID, "external.proxy", strconv.Itoa(ext_response_code))
+				sendLogsToElastic(INFOWATCH_PID, "external.proxy", ext_response_code)
 			} else {
 				// if external proxy is down for x minutes
 				if DOWN["ext_pr"] == 360 {
 					helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_ext_still_down, ext_response_code))
 					DOWN["ext_pr"] = -1
 					logger.Warning(fmt.Sprintf(m_ext_still_down, ext_response_code))
-					sendLogsToInfoWatch(INFOWATCH_PID, "external.proxy", strconv.Itoa(ext_response_code))
+					sendLogsToElastic(INFOWATCH_PID, "external.proxy", ext_response_code)
 				}
 				DOWN["ext_pr"]++
 			}
@@ -180,7 +208,7 @@ func main() {
 				helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_ext_down, ext_response_code))
 				DOWN["ext_pr"] = 0
 				logger.Warning(fmt.Sprintf(m_ext_down, ext_response_code))
-				sendLogsToInfoWatch(INFOWATCH_PID, "external.proxy", strconv.Itoa(ext_response_code))
+				sendLogsToElastic(INFOWATCH_PID, "external.proxy", ext_response_code)
 			}
 		}
 
@@ -194,14 +222,14 @@ func main() {
 				DOWN["int_pr"] = -1
 				helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), m_int_up)
 				logger.Info(m_int_up)
-				sendLogsToInfoWatch(INFOWATCH_PID, "internal.proxy", strconv.Itoa(int_response_code))
+				sendLogsToElastic(INFOWATCH_PID, "internal.proxy", int_response_code)
 			} else {
 				// if internal proxy is down for x minutes
 				if DOWN["int_pr"] == 360 {
 					helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_int_still_down, int_response_code))
 					DOWN["int_pr"] = -1
 					logger.Warning(fmt.Sprintf(m_int_still_down, int_response_code))
-					sendLogsToInfoWatch(INFOWATCH_PID, "internal.proxy", strconv.Itoa(int_response_code))
+					sendLogsToElastic(INFOWATCH_PID, "internal.proxy", int_response_code)
 				}
 				DOWN["int_pr"]++
 			}
@@ -211,7 +239,7 @@ func main() {
 				helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_int_down, int_response_code))
 				DOWN["int_pr"] = 0
 				logger.Warning(fmt.Sprintf(m_int_down, int_response_code))
-				sendLogsToInfoWatch(INFOWATCH_PID, "internal.proxy", strconv.Itoa(int_response_code))
+				sendLogsToElastic(INFOWATCH_PID, "internal.proxy", int_response_code)
 			}
 		}
 
@@ -228,14 +256,14 @@ func main() {
 					DOWN[sub] = -1
 					helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_target_up, sub))
 					logger.Info(fmt.Sprintf(m_target_up, sub))
-					sendLogsToInfoWatch(INFOWATCH_PID, domain, strconv.Itoa(target_response_code))
+					sendLogsToElastic(INFOWATCH_PID, domain, target_response_code)
 				} else {
 					// if target is down for x minutes
 					if DOWN[sub] == 360 {
 						helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_target_still_down, sub, target_response_code))
 						DOWN[sub] = -1
 						logger.Warning(fmt.Sprintf(m_target_still_down, sub, target_response_code))
-						sendLogsToInfoWatch(INFOWATCH_PID, domain, strconv.Itoa(target_response_code))
+						sendLogsToElastic(INFOWATCH_PID, domain, target_response_code)
 					}
 					DOWN[sub]++
 				}
@@ -245,7 +273,7 @@ func main() {
 					helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_target_down, sub, target_response_code))
 					DOWN[sub] = 0
 					logger.Warning(fmt.Sprintf(m_target_down, sub, target_response_code))
-					sendLogsToInfoWatch(INFOWATCH_PID, domain, strconv.Itoa(target_response_code))
+					sendLogsToElastic(INFOWATCH_PID, domain, target_response_code)
 				}
 			}
 		}
