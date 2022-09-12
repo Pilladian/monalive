@@ -208,8 +208,8 @@ func main() {
 				helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_ext_down, ext_response_code))
 				DOWN["ext_pr"] = 0
 				logger.Warning(fmt.Sprintf(m_ext_down, ext_response_code))
-				sendLogsToElastic(ELASTIC_SEARCH_PID, "external.proxy", ext_response_code)
 			}
+			sendLogsToElastic(ELASTIC_SEARCH_PID, "external.proxy", ext_response_code)
 		}
 
 		// INTERNAL PROXY
@@ -239,8 +239,8 @@ func main() {
 				helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_int_down, int_response_code))
 				DOWN["int_pr"] = 0
 				logger.Warning(fmt.Sprintf(m_int_down, int_response_code))
-				sendLogsToElastic(ELASTIC_SEARCH_PID, "internal.proxy", int_response_code)
 			}
+			sendLogsToElastic(ELASTIC_SEARCH_PID, "internal.proxy", int_response_code)
 		}
 
 		// TARGETS
@@ -273,8 +273,8 @@ func main() {
 					helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_target_down, sub, target_response_code))
 					DOWN[sub] = 0
 					logger.Warning(fmt.Sprintf(m_target_down, sub, target_response_code))
-					sendLogsToElastic(ELASTIC_SEARCH_PID, domain, target_response_code)
 				}
+				sendLogsToElastic(ELASTIC_SEARCH_PID, domain, target_response_code)
 			}
 		}
 		time.Sleep(5 * time.Second)
