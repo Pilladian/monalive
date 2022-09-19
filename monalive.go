@@ -77,7 +77,7 @@ func sendLogsToElastic(pid string, domain string, response_code int) (int, error
 
 // Return list of targets, that will be monitored
 func getTargets() {
-	for i := 1; i < 10; i++ {
+	for i := 1; i <= 20; i++ {
 		e := os.Getenv(fmt.Sprintf("URL_%d", i))
 		if e != "" {
 			TARGETS = append(TARGETS, e)
