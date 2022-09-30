@@ -159,6 +159,9 @@ func urlCheck(url string) (bool, int, error) {
 }
 
 func main() {
+	CHECK_INTERNAL_PROXY := false
+	CHECK_EXTERNAL_PROXY := false
+
 	logger.SetLogLevel(2)
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	CLIENT = &http.Client{}
@@ -185,65 +188,69 @@ func main() {
 
 	for true {
 		// EXTERNAL PROXY
-		logger.Info("Check External Proxy")
-		ext_running, ext_response_code, _ := externalProxyCheck()
-		// if external proxy was down the last scan
-		if DOWN["ext_pr"] != -1 {
-			// if external proxy is now up running
-			if ext_running {
-				DOWN["ext_pr"] = -1
-				helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), m_ext_up)
-				logger.Info(fmt.Sprintf(m_ext_up, ext_response_code))
-				sendLogsToElastic(ELASTIC_SEARCH_PID, "external.proxy", ext_response_code)
-			} else {
-				// if external proxy is down for x minutes
-				if DOWN["ext_pr"] == 360 {
-					helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_ext_still_down, ext_response_code))
+		if CHECK_EXTERNAL_PROXY {
+			logger.Info("Check External Proxy")
+			ext_running, ext_response_code, _ := externalProxyCheck()
+			// if external proxy was down the last scan
+			if DOWN["ext_pr"] != -1 {
+				// if external proxy is now up running
+				if ext_running {
 					DOWN["ext_pr"] = -1
-					logger.Warning(fmt.Sprintf(m_ext_still_down, ext_response_code))
+					helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), m_ext_up)
+					logger.Info(fmt.Sprintf(m_ext_up, ext_response_code))
+					sendLogsToElastic(ELASTIC_SEARCH_PID, "external.proxy", ext_response_code)
+				} else {
+					// if external proxy is down for x minutes
+					if DOWN["ext_pr"] == 360 {
+						helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_ext_still_down, ext_response_code))
+						DOWN["ext_pr"] = -1
+						logger.Warning(fmt.Sprintf(m_ext_still_down, ext_response_code))
+					}
+					sendLogsToElastic(ELASTIC_SEARCH_PID, "external.proxy", ext_response_code)
+					DOWN["ext_pr"]++
+				}
+			} else {
+				// if external proxy was up last scan and is not running anymore
+				if !ext_running {
+					helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_ext_down, ext_response_code))
+					DOWN["ext_pr"] = 0
+					logger.Warning(fmt.Sprintf(m_ext_down, ext_response_code))
 				}
 				sendLogsToElastic(ELASTIC_SEARCH_PID, "external.proxy", ext_response_code)
-				DOWN["ext_pr"]++
 			}
-		} else {
-			// if external proxy was up last scan and is not running anymore
-			if !ext_running {
-				helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_ext_down, ext_response_code))
-				DOWN["ext_pr"] = 0
-				logger.Warning(fmt.Sprintf(m_ext_down, ext_response_code))
-			}
-			sendLogsToElastic(ELASTIC_SEARCH_PID, "external.proxy", ext_response_code)
 		}
 
 		// INTERNAL PROXY
-		logger.Info("Check Internal Proxy")
-		int_running, int_response_code, _ := internalProxyCheck()
-		// if internal proxy was down the last scan
-		if DOWN["int_pr"] != -1 {
-			// if internal proxy is now up running
-			if int_running {
-				DOWN["int_pr"] = -1
-				helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), m_int_up)
-				logger.Info(m_int_up)
-				sendLogsToElastic(ELASTIC_SEARCH_PID, "internal.proxy", int_response_code)
-			} else {
-				// if internal proxy is down for x minutes
-				if DOWN["int_pr"] == 360 {
-					helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_int_still_down, int_response_code))
+		if CHECK_INTERNAL_PROXY {
+			logger.Info("Check Internal Proxy")
+			int_running, int_response_code, _ := internalProxyCheck()
+			// if internal proxy was down the last scan
+			if DOWN["int_pr"] != -1 {
+				// if internal proxy is now up running
+				if int_running {
 					DOWN["int_pr"] = -1
-					logger.Warning(fmt.Sprintf(m_int_still_down, int_response_code))
+					helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), m_int_up)
+					logger.Info(m_int_up)
+					sendLogsToElastic(ELASTIC_SEARCH_PID, "internal.proxy", int_response_code)
+				} else {
+					// if internal proxy is down for x minutes
+					if DOWN["int_pr"] == 360 {
+						helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_int_still_down, int_response_code))
+						DOWN["int_pr"] = -1
+						logger.Warning(fmt.Sprintf(m_int_still_down, int_response_code))
+					}
+					sendLogsToElastic(ELASTIC_SEARCH_PID, "internal.proxy", int_response_code)
+					DOWN["int_pr"]++
+				}
+			} else {
+				// if internal proxy was up last scan and is not running anymore
+				if !int_running {
+					helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_int_down, int_response_code))
+					DOWN["int_pr"] = 0
+					logger.Warning(fmt.Sprintf(m_int_down, int_response_code))
 				}
 				sendLogsToElastic(ELASTIC_SEARCH_PID, "internal.proxy", int_response_code)
-				DOWN["int_pr"]++
 			}
-		} else {
-			// if internal proxy was up last scan and is not running anymore
-			if !int_running {
-				helper.SendTelegramMessage(os.Getenv("BOT_TOKEN"), os.Getenv("CHAT_ID"), fmt.Sprintf(m_int_down, int_response_code))
-				DOWN["int_pr"] = 0
-				logger.Warning(fmt.Sprintf(m_int_down, int_response_code))
-			}
-			sendLogsToElastic(ELASTIC_SEARCH_PID, "internal.proxy", int_response_code)
 		}
 
 		// TARGETS
