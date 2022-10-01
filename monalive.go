@@ -164,7 +164,9 @@ func main() {
 
 	logger.SetLogLevel(2)
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	CLIENT = &http.Client{}
+	CLIENT = &http.Client{
+		Timeout: 5 * time.Second,
+	}
 
 	getTargets()
 	DOWN["ext_pr"] = -1
